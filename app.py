@@ -11,17 +11,25 @@ st.set_page_config(
 )
 
 # ================= آدرس وب‌هوک گوگل شیت =================
-GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzCLMcPY7EkaoI9JPn4zLyN7az4fzMPZGL4tZJwTQ7Pa54z61BUX1BJXSaFbdE-GUXn/exec"
+# اگر لینک جدیدی از دیپلوی گرفتید، می‌توانید آن را اینجا یا از بخش پنل مدیریت وارد کنید
+DEFAULT_SHEET_URL = "https://script.google.com/macros/s/AKfycbzCLMcPY7EkaoI9JPn4zLyN7az4fzMPZGL4tZJwTQ7Pa54z61BUX1BJXSaFbdE-GUXn/exec"
+
+if "google_sheet_url" not in st.session_state:
+    st.session_state.google_sheet_url = DEFAULT_SHEET_URL
 
 if "click_count" not in st.session_state:
     st.session_state.click_count = 0
 
 def send_to_google_sheet(payload):
-    """ارسال داده‌ها به وب‌هوک گوگل شیت"""
+    """ارسال داده‌ها به وب‌هوک گوگل شیت با دریافت وضعیت پاسخ"""
     try:
-        requests.post(GOOGLE_SHEET_URL, json=payload, timeout=5)
-    except Exception:
-        pass
+        response = requests.post(st.session_state.google_sheet_url, json=payload, timeout=8)
+        if response.status_code == 200:
+            return True, "اطلاعات با موفقیت در سرور ثبت شد."
+        else:
+            return False, f"خطای سرور گوگل: {response.status_code}"
+    except Exception as e:
+        return False, f"خطا در برقراری ارتباط: {str(e)}"
 
 # ================= استایل و سربرگ =================
 st.markdown("""
@@ -39,7 +47,11 @@ with st.sidebar:
     st.markdown("**سامانه توصیه‌گر خودمراقبتی دیابت**")
     st.caption("مبتنی بر پرسشنامه استاندارد موج صفر")
     st.markdown("---")
-    menu = st.radio("بخش‌های سامانه:", ["📝 تکمیل پرسشنامه و دریافت توصیه", "ℹ️ درباره طرح پژوهشی"])
+    menu = st.radio("بخش‌های سامانه:", [
+        "📝 تکمیل پرسشنامه و دریافت توصیه",
+        "ℹ️ درباره طرح پژوهشی",
+        "🔐 پنل مدیریت و آمار پژوهشگر"
+    ])
 
 # ================= ۱. فرم ارزیابی =================
 if menu == "📝 تکمیل پرسشنامه و دریافت توصیه":
@@ -158,7 +170,7 @@ if menu == "📝 تکمیل پرسشنامه و دریافت توصیه":
     if submit_btn:
         st.session_state.click_count += 1
         
-        # خلاصه اطلاعات دیابت برای ذخیره
+        # خلاصه اطلاعات جهت ثبت در ستون ۵
         summary_info = f"نوع: {q7_type} | درمان: {q9_treatment} | ناشتا: {q11_fbs} | HbA1c: {q13_hba1c} | BMI: {bmi}"
         
         # ارسال اطلاعات به گوگل شیت
@@ -169,9 +181,9 @@ if menu == "📝 تکمیل پرسشنامه و دریافت توصیه":
             "click_count": st.session_state.click_count,
             "diabetes_info": summary_info
         }
-        send_to_google_sheet(payload)
+        success, msg = send_to_google_sheet(payload)
 
-        # نمایش کارت‌های توصیه
+        # نمایش پیام وضعیت
         st.success(f"✅ با تشکر از شما {q1_name}، پرونده خودمراقبتی شما با موفقیت ثبت و تحلیل شد.")
         
         # شاخص توده بدنی
@@ -224,3 +236,39 @@ elif menu == "ℹ️ درباره طرح پژوهشی":
     st.write("""
     این پژوهش در قالب یک سیستم تصمیم‌یار بالینی (CDSS) جهت بررسی اثربخشی آموزش و توصیه‌های هوشمند در ارتقای شاخص‌های خودمراقبتی و سواد سلامت بیماران دیابتی طراحی شده است.
     """)
+
+# ================= ۳. پنل مدیریت پژوهشگر =================
+elif menu == "🔐 پنل مدیریت و آمار پژوهشگر":
+    st.markdown("<h2 class='main-title'>🔐 پنل مدیریت و تنظیمات اتصال</h2>", unsafe_allow_html=True)
+    st.markdown("<p class='sub-title'>جهت مشاهده وضعیت و ویرایش لینک اتصال گوگل‌شیت وارد شوید.</p>", unsafe_allow_html=True)
+
+    admin_pass = st.text_input("رمز عبور مدیر:", type="password")
+    
+    # رمز پیش‌فرض: admin123
+    if admin_pass == "admin123":
+        st.success("🔓 احراز هویت با موفقیت انجام شد.")
+        
+        st.markdown("### ⚙️ تنظیمات لینک وب‌هوک گوگل شیت")
+        new_url = st.text_input("آدرس Webhook Google Apps Script:", value=st.session_state.google_sheet_url)
+        if st.button("💾 ذخیره لینک جدید"):
+            st.session_state.google_sheet_url = new_url
+            st.success("✅ لینک وب‌هوک با موفقیت به‌روزرسانی شد.")
+            
+        st.markdown("---")
+        st.markdown("### 🧪 تست فوری ارسال داده به گوگل‌شیت")
+        if st.button("🚀 ارسال داده تستی به گوگل‌شیت"):
+            test_payload = {
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "gender": "تست سیستم",
+                "received_advice": "بله",
+                "click_count": 99,
+                "diabetes_info": "تست سلامت اتصال گوگل‌شیت از پنل ادمین"
+            }
+            ok, msg = send_to_google_sheet(test_payload)
+            if ok:
+                st.success("✅ ارسال تست موفق بود! لطفاً گوگل شیت خود را چک کنید، یک ردیف تستی اضافه شده است.")
+            else:
+                st.error(f"❌ خطا در اتصال به گوگل‌شیت: {msg}")
+    elif admin_pass != "":
+        st.error("❌ رمز عبور اشتباه است.")
+

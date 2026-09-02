@@ -10,8 +10,8 @@ st.set_page_config(
     layout="wide"
 )
 
-# ================= آدرس وب‌هوک گوگل شیت =================
-DEFAULT_SHEET_URL = "https://search.eitaa.com/?url=https://script.google.com/macros/s/AKfycbzuNbLV7kaM8PmZO1Dogssna7l9j0z5s9Z7_iOwmBSxY0ADuqPR4ACaZEcU7qwFeNrP/exec"
+# ================= آدرس وب‌هوک گوگل شیت (آدرس نهایی و فعال شما) =================
+DEFAULT_SHEET_URL = "https://script.google.com/macros/s/AKfycbzuNbLV7kaM8PmZO1Dogssna7l9j0z5s9Z7_iOwmBSxY0ADuqPR4ACaZEcU7qwFeNrP/exec"
 
 if "google_sheet_url" not in st.session_state:
     st.session_state.google_sheet_url = DEFAULT_SHEET_URL
@@ -29,10 +29,11 @@ if "user_gender" not in st.session_state:
     st.session_state.user_gender = ""
 
 def send_to_google_sheet(payload):
-    """ارسال داده‌ها به وب‌هوک گوگل شیت"""
+    """ارسال داده‌ها به وب‌هوک گوگل شیت با مدیریت تغییر مسیر"""
     url = st.session_state.google_sheet_url.strip()
     try:
-        headers = {"Content-Type": "application/json"}
+        headers = {"Content-Type": "text/plain;charset=utf-8"}
+        # استفاده از متد POST و پشتیبانی کامل از ریدایرکت گوگل
         response = requests.post(
             url,
             json=payload,
@@ -192,7 +193,7 @@ if menu == "📝 تکمیل پرسشنامه و دریافت برنامه":
         summary = f"نوع: {q7_type} | درمان: {q9_treatment} | ناشتا: {q11_fbs} | HbA1c: {q13_hba1c} | BMI: {bmi}"
         st.session_state.user_info_summary = summary
         
-        # ارسال اطلاعات بالینی به گوگل شیت
+        # ثبت ورود کاربر در گوگل‌شیت
         payload = {
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "gender": q3_gender,
@@ -289,7 +290,7 @@ if menu == "📝 تکمیل پرسشنامه و دریافت برنامه":
             fb_ok, fb_msg = send_to_google_sheet(feedback_payload)
             if fb_ok:
                 st.balloons()
-                st.success("🎉 با تشکر! میزان رضایت شما با موفقیت در ستون مربوطه در گوگل‌شیت ذخیره شد.")
+                st.success("🎉 با تشکر! میزان رضایت شما با موفقیت در گوگل‌شیت ذخیره شد.")
             else:
                 st.error(f"خطا در ثبت: {fb_msg}")
 
@@ -311,7 +312,7 @@ elif menu == "🔐 پنل مدیریت و بررسی اتصال":
         
         c_btn1, c_btn2 = st.columns(2)
         with c_btn1:
-            if st.button("💾 ذخیره آدرس", use_container_width=True):
+            if st.button("💾 ذخیره آدرس در این نشست", use_container_width=True):
                 st.session_state.google_sheet_url = current_url.strip()
                 st.success("✅ آدرس ذخیره شد.")
                 

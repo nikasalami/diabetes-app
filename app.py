@@ -10,7 +10,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# ================= آدرس وب‌هوک پیش‌فرض =================
+# ================= آدرس وب‌هوک گوگل شیت =================
 DEFAULT_SHEET_URL = "https://script.google.com/macros/s/AKfycbzCLMcPY7EkaoI9JPn4zLyN7az4fzMPZGL4tZJwTQ7Pa54z61BUX1BJXSaFbdE-GUXn/exec"
 
 if "google_sheet_url" not in st.session_state:
@@ -43,11 +43,11 @@ def send_to_google_sheet(payload):
         if response.status_code in [200, 302]:
             return True, "اطلاعات با موفقیت در گوگل‌شیت ثبت شد."
         else:
-            return False, f"کد خطای سرور: {response.status_code}"
+            return False, f"کد وضعیت سرور: {response.status_code}"
     except Exception as e:
         return False, f"خطا در ارتباط: {str(e)}"
 
-# ================= استایل =================
+# ================= استایل‌های بصری =================
 st.markdown("""
 <style>
     .main-title {text-align: right; color: #0D47A1; font-weight: bold; margin-bottom: 5px;}
@@ -56,57 +56,78 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# منوی کناری
+# منوی کناری (Sidebar)
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/2854/2854341.png", width=90)
+    st.image("https://cdn-icons-png.flaticon.com/512/2854/2854341.png", width=80)
     st.title("DiaCare AI")
-    st.markdown("**سامانه توصیه‌گر خودمراقبتی دیابت**")
-    st.caption("مبتنی بر پرسشنامه استاندارد موج صفر")
+    st.markdown("**سامانه هوشمند خودمراقبتی دیابت**")
+    st.caption("مبتنی بر پروتکل استاندارد موج صفر")
     st.markdown("---")
     menu = st.radio("بخش‌های سامانه:", [
-        "📝 تکمیل پرسشنامه و دریافت توصیه",
+        "📝 تکمیل پرسشنامه و دریافت برنامه",
         "ℹ️ درباره طرح پژوهشی",
-        "🔐 پنل مدیریت و تست اتصال"
+        "🔐 پنل مدیریت و بررسی اتصال"
     ])
 
-# ================= ۱. فرم ارزیابی و دریافت توصیه‌ها =================
-if menu == "📝 تکمیل پرسشنامه و دریافت توصیه":
-    st.markdown("<h2 class='main-title'>🩺 سامانه توصیه‌گر هوشمند خودمراقبتی بیماران دیابتی</h2>", unsafe_allow_html=True)
-    st.markdown("<p class='sub-title'>لطفاً پرسشنامه را تکمیل فرمایید تا سیستم توصیه‌های بالینی و خودمراقبتی اختصاصی شما را ارائه دهد.</p>", unsafe_allow_html=True)
+# ================= بخش ۱: پرسشنامه و دریافت توصیه‌ها =================
+if menu == "📝 تکمیل پرسشنامه و دریافت برنامه":
+    st.markdown("<h2 class='main-title'>🩺 سامانه توصیه‌گر خودمراقبتی بیماران دیابتی</h2>", unsafe_allow_html=True)
+    st.markdown("<p class='sub-title'>لطفاً مشخصات بالینی خود را وارد فرمایید تا توصیه‌های اختصاصی به شما ارائه شود.</p>", unsafe_allow_html=True)
 
     with st.form("diabetes_survey_form"):
-        # بخش ۱: مشخصات فردی
-        st.markdown("<div class='section-header'>👤 بخش ۱: مشخصات فردی و دموگرافیک</div>", unsafe_allow_html=True)
+        # بخش ۱: اطلاعات فردی
+        st.markdown("<div class='section-header'>👤 بخش ۱: مشخصات فردی و آنتروپومتریک</div>", unsafe_allow_html=True)
         c1, c2 = st.columns(2)
         with c1:
-            q1_name = st.text_input("۱. نام و نام خانوادگی یا نام مستعار (جهت خطاب):", value="کاربر گرامی")
+            q1_name = st.text_input("۱. نام و نام خانوادگی یا نام مستعار:", value="کاربر گرامی")
             q3_gender = st.radio("۳. جنسیت:", ["زن", "مرد"], horizontal=True)
             q5_height = st.number_input("۵. قد (سانتی‌متر):", min_value=100, max_value=230, value=168)
         with c2:
-            q2_phone = st.text_input("۲. شماره تلفن همراه (اختیاری):", value="")
-            q4_age = st.number_input("۴. سن (سال):", min_value=10, max_value=100, value=48)
-            q6_weight = st.number_input("۶. وزن فعلی (کیلوگرم):", min_value=30.0, max_ را تکمیل فرمایید تا سیستم توصیه‌های بالینی و خودمراقبتی اختصاصی شما را ارائه دهد.</p>", unsafe_allow_html=True)
-
-    with st.form("diabetes_survey_form"):
-        # بخش ۱: مشخصات فردی
-        st.markdown("<div class='section-header'>👤 بخش ۱: مشخصات فردی و دموگرافیک</div>", unsafe_allow_html=True)
-        c1, c2 = st.columns(2)
-        with c1:
-            q1_name = st.text_input("۱. نام و نام خانوادگی یا نام مستعار (جهت خطاب):", value="کاربر گرامی")
-            q3_gender = st.radio("۳. جنسیت:", ["زن", "مرد"], horizontal=True)
-            q5_height = st.number_input("۵. قد (سانتی‌متر):", min_value=100, max_value=230, value=168)
-        with c2:
-            q2_phone = st.text_input("۲. شماره تلفن همراه (اختیاری):", value="")
+            q2_phone = st.text_input("۲. شماره تماس (اختیاری):", value="")
             q4_age = st.number_input("۴. سن (سال):", min_value=10, max_value=100, value=48)
             q6_weight = st.number_input("۶. وزن فعلی (کیلوگرم):", min_value=30.0, max_value=200.0, value=74.0, step=0.5)
 
         bmi = round(q6_weight / ((q5_height / 100) ** 2), 1)
 
         # بخش ۲: وضعیت درمانی
-        st.markdown("<div class='section-header'>💊 بخش ۲: سابقه و روش درمانی دیابت</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-header'>💊 بخش ۲: سابقه و روش درمانی</div>", unsafe_allow_html=True)
         c3, c4 = st.columns(2)
         with c3:
-            q7_type = st. میانگین قند خون ناشتای شما در دو هفته اخیر:", [
+            q7_type = st.selectbox("۷. نوع دیابت:", [
+                "دیابت نوع ۲",
+                "دیابت نوع ۱",
+                "پره‌دیابت (پیش‌دیابت)",
+                "دیابت بارداری",
+                "نمی‌دانم / مطمئن نیستم"
+            ])
+            q9_treatment = st.selectbox("۹. روش اصلی کنترل و درمان دیابت شما:", [
+                "فقط قرص‌های خوراکی (مانند متفورمین)",
+                "تزریق انسولین (با یا بدون قرص)",
+                "فقط اصلاح سبک زندگی (رژیم غذایی و ورزش)",
+                "دارو مصرف نمی‌کنم"
+            ])
+        with c4:
+            q8_duration = st.selectbox("۸. مدت‌زمان ابتلا به دیابت:", [
+                "کمتر از ۱ سال (به‌تازگی تشخیص داده شده)",
+                "۱ تا ۵ سال",
+                "۵ تا ۱۰ سال",
+                "بیش از ۱۰ سال"
+            ])
+            q10_comorbidities = st.multiselect("۱۰. بیماری‌های زمینه‌ای یا عوارض همزمان (در صورت وجود):", [
+                "فشار خون بالا",
+                "چربی خون بالا",
+                "مشکلات قلبی-عروقی",
+                "نارسایی یا اختلال کلیوی",
+                "مشکلات بینایی / شبکیه چشم",
+                "زخم پای دیابتی / گزگز پاها",
+                "هیچ‌کدام"
+            ], default=["هیچ‌کدام"])
+
+        # بخش ۳: شاخص‌های خونی
+        st.markdown("<div class='section-header'>🩸 بخش ۳: کنترل قند خون و وضعیت بالینی</div>", unsafe_allow_html=True)
+        c5, c6 = st.columns(2)
+        with c5:
+            q11_fbs = st.selectbox("۱۱. میانگین قند خون ناشتا در دو هفته اخیر:", [
                 "۷۰ تا ۱۳۰ (محدوده مطلوب)",
                 "۱۳۰ تا ۱۸۰ (کمی بالاتر از حد هدف)",
                 "بیشتر از ۱۸۰ (خیلی بالا)",
@@ -126,42 +147,42 @@ if menu == "📝 تکمیل پرسشنامه و دریافت توصیه":
                 "بیشتر از ۲۵۰ (خیلی بالا)",
                 "نمی‌سنجم / اطلاعی ندارم"
             ])
-            q14_hypo = st.selectbox("۱۴. آیا در یک ماه گذشته دچار افت قند شدید شده‌اید؟", [
+            q14_hypo = st.selectbox("۱۴. افت قند خون شدید (هیپوگلیسمی) در یک ماه گذشته:", [
                 "خیر",
                 "بله، یک یا دو بار",
                 "بله، مکرراً (بیش از ۲ بار)"
             ])
 
-        # بخش ۴: خودمراقبتی
+        # بخش ۴: رفتارهای خودمراقبتی
         st.markdown("<div class='section-header'>🏃‍♂️ بخش ۴: خودمراقبتی و سبک زندگی</div>", unsafe_allow_html=True)
         c7, c8 = st.columns(2)
         with c7:
-            q15_glucometer = st.selectbox("۱۵. چقدر از دستگاه قند سنج (گلوکومتر) استفاده می‌کنید؟", [
+            q15_glucometer = st.selectbox("۱۵. پایش قند با دستگاه گلوکومتر خانگی:", [
                 "روزانه یک‌بار یا بیشتر",
                 "چند بار در هفته",
-                "فقط زمانی که حالم بد است",
-                "اصلاً دستگاه ندارم / استفاده نمی‌کنم"
+                "فقط در صورت بروز علائم بدحالی",
+                "دستگاه ندارم / استفاده نمی‌کنم"
             ])
-            q17_exercise = st.selectbox("۱۷. در طول هفته چند روز فعالیت بدنی (حداقل ۳۰ دقیقه) دارید؟", [
+            q17_exercise = st.selectbox("۱۷. فعالیت بدنی (حداقل ۳۰ دقیقه) در طول هفته:", [
                 "اصلاً یا کمتر از ۱ روز",
                 "۱ تا ۲ روز در هفته",
                 "۳ تا ۴ روز در هفته",
                 "۵ روز یا بیشتر در هفته"
             ])
         with c8:
-            q16_adherence = st.selectbox("۱۶. نحوه مصرف داروهای دیابت یا تزریق انسولین:", [
-                "کاملاً منظم و دقیقاً طبق دستور",
-                "گاهی فراموش می‌کنم (یک یا دو بار در هفته)",
+            q16_adherence = st.selectbox("۱۶. نظم در مصرف داروهای تجویز شده یا تزریق انسولین:", [
+                "کاملاً منظم و طبق دستور پزشک",
+                "گاهی فراموش می‌کنم (۱ یا ۲ بار در هفته)",
                 "اغلب فراموش می‌کنم یا نامنظم است"
             ])
-            q18_diet = st.selectbox("۱۸. مصرف قندهای ساده، شیرینی‌جات و نوشیدنی‌های شیرین:", [
+            q18_diet = st.selectbox("۱۸. مصرف قندهای ساده، نوشابه و شیرینی‌جات:", [
                 "به‌ندرت یا اصلاً مصرف نمی‌کنم",
                 "گاهی در طول هفته",
                 "تقریباً هر روز"
             ])
 
         st.markdown("---")
-        submit_btn = st.form_submit_button("🔍 ثبت اطلاعات و دریافت برنامه خودمراقبتی", use_container_width=True, type="primary")
+        submit_btn = st.form_submit_button("🔍 ثبت مشخصات و صدور توصیه‌ها", use_container_width=True, type="primary")
 
     if submit_btn:
         st.session_state.click_count += 1
@@ -171,7 +192,7 @@ if menu == "📝 تکمیل پرسشنامه و دریافت توصیه":
         summary = f"نوع: {q7_type} | درمان: {q9_treatment} | ناشتا: {q11_fbs} | HbA1c: {q13_hba1c} | BMI: {bmi}"
         st.session_state.user_info_summary = summary
         
-        # ثبت اولیه داده‌های بالینی بیمار
+        # ارسال اطلاعات بالینی به گوگل شیت
         payload = {
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "gender": q3_gender,
@@ -184,78 +205,77 @@ if menu == "📝 تکمیل پرسشنامه و دریافت توصیه":
         }
         send_to_google_sheet(payload)
 
-    # نمایش توصیه‌ها پس از ثبت فرم
+    # نمایش نتایج و توصیه‌ها
     if st.session_state.form_submitted:
-        st.success("✅ پرونده شما با موفقیت تحلیل شد و توصیه‌های خودمراقبتی آماده است.")
+        st.success("✅ اطلاعات با موفقیت ثبت شد. توصیه‌های بالینی شما به شرح زیر است:")
         
-        c_bmi1, c_bmi2 = st.columns(2)
-        with c_bmi1:
+        m1, m2 = st.columns(2)
+        with m1:
             st.metric("شاخص توده بدنی (BMI)", f"{bmi} kg/m²")
-        with c_bmi2:
+        with m2:
             if bmi < 18.5:
-                st.warning("⚠️ کمبود وزن: نیاز به تقویت کالری دریافتی")
+                st.warning("⚠️ کمبود وزن: نیاز به ارتقای دریافت کالری با پروتئین باکیفیت")
             elif 18.5 <= bmi <= 24.9:
-                st.success("🟢 وزن نرمال و ایده‌آل")
+                st.success("🟢 وزن نرمال و در محدوده سلامت")
             elif 25.0 <= bmi <= 29.9:
-                st.warning("🟡 دارای اضافه‌وزن: رژیم متعادل توصیه می‌شود")
+                st.warning("🟡 اضافه وزن: کاهش ۵ تا ۷ درصدی وزن به بهبود قند خون کمک می‌کند")
             else:
-                st.error("🔴 چاقی: کاهش تدریجی وزن ضروری است")
+                st.error("🔴 چاقی: تنظیم برنامه غذایی کم‌کالری و مشاوره تغذیه ضروری است")
 
-        st.markdown("### 📋 بسته‌های توصیه‌گر بالینی شخصی‌سازی‌شده:")
-        t1, t2, t3, t4 = st.tabs(["🥗 رژیم و تغذیه", "🏃‍♂️ فعالیت بدنی", "💊 داروها و پایش", "⚠️ هشدارها و پیگیری"])
+        st.markdown("### 📋 بسته‌های توصیه‌گر شخصی‌سازی‌شده:")
+        tab1, tab2, tab3, tab4 = st.tabs(["🥗 رژیم غذایی", "🏃‍♂️ فعالیت بدنی", "💊 دارودرمانی و پایش", "⚠️ هشدارها و عوارض"])
         
-        with t1:
+        with tab1:
             if "هر روز" in q18_diet:
-                st.error("• مصرف قندهای ساده و نوشیدنی‌های شیرین را متوقف کرده و کربوهیدرات‌های پیچیده جایگزین کنید.")
-            st.write("• بشقاب غذایی استاندارد: ۵۰٪ سبزیجات غیرنشاسته‌ای، ۲۵٪ پروتئین کم‌چرب و ۲۵٪ غلات کامل.")
-            st.write("• مصرف نمک و چربی‌های اشباع را جهت محافظت از عروق و کلیه‌ها کاهش دهید.")
+                st.error("• مصرف قندهای ساده و نوشیدنی‌های قندی را متوقف و فیبرهای محلول را جایگزین فرمایید.")
+            st.write("• طبق الگوی بشقاب سالم: نیمی از بشقاب سبزیجات، یک‌چهارم غلات کامل و یک‌چهارم پروتئین سالم باشد.")
+            st.write("• مصرف نمک و چربی‌های اشباع را برای حفظ سلامت قلب و عروق محدود کنید.")
 
-        with t2:
+        with tab2:
             if "اصلاً" in q17_exercise:
-                st.warning("• فعالیت بدنی ناکافی است. روزانه با ۱۵ دقیقه پیاده‌روی شروع کنید و به ۳۰ دقیقه برسانید.")
+                st.warning("• فعالیت بدنی ناکافی است. روزانه حداقل با ۱۵ دقیقه پیاده‌روی شروع کنید.")
             else:
-                st.info("• هدف استاندارد: حداقل ۱۵۰ دقیقه پیاده‌روی سریع در هفته در جلسات ۳۰ دقیقه‌ای.")
+                st.info("• هدف استاندارد: ۱۵۰ دقیقه پیاده‌روی سریع در هفته (۵ روز در هفته، هر بار ۳۰ دقیقه).")
 
-        with t3:
+        with tab3:
             if "فراموش" in q16_adherence:
-                st.error("• مصرف منظم دارو کلید پیشگیری از عوارض دیابت است. یادآور منظم تنظیم کنید.")
-            if "اصلاً" in q15_glucometer or "فقط زمانی" in q15_glucometer:
-                st.warning("• پایش دوره‌ای قند خون ناشتا و بعد از غذا را در برنامه هفتگی قرار دهید.")
+                st.error("• پایبندی به برنامه دارویی کلید اصلی پیشگیری از نارسایی کلیه و عروق است.")
+            if "ندارم" in q15_glucometer or "فقط در صورت" in q15_glucometer:
+                st.warning("• پایش منظم قند خون با گلوکومتر برای جلوگیری از نوسانات شدید لازم است.")
 
-        with t4:
-            if "بله، مکرراً" in q14_hypo or "<۷۰" in q11_fbs:
-                st.error("🚨 خطر افت قند خون: حتماً با پزشک معالج برای تنظیم دوز داروها مشورت کنید.")
+        with tab4:
+            if "بله، مکرراً" in q14_hypo or "کمتر از ۷۰" in q11_fbs:
+                st.error("🚨 خطر هیپوگلیسمی: همیشه حبه قند یا آبمیوه همراه داشته باشید و فوراً با پزشک مشورت فرمایید.")
             if "زخم پای دیابتی" in q10_comorbidities:
-                st.error("🚨 مراقبت ویژه از پا: روزانه پاها را از نظر هرگونه خراش یا تغییر رنگ معاینه فرمایید.")
-            st.info("• انجام منظم آزمایش HbA1c هر ۳ تا ۶ ماه یک‌بار الزامی است.")
+                st.error("🚨 مراقبت از پا: روزانه پاها را با آب ولرم شسته، خشک کرده و از نظر زخم یا قرمزی بررسی فرمایید.")
+            st.info("• آزمایش هموگلوبین گلیکوزیله (HbA1c) را هر ۳ تا ۶ ماه تکرار کنید.")
 
         # ================= بخش نظرسنجی و رضایت‌سنجی =================
         st.markdown("---")
-        st.markdown("### 🌟 نظرسنجی و ثبت میزان رضایت از توصیه‌گر")
-        st.write("پاسخ‌های شما مستقیماً در پایگاه داده پژوهش ذخیره خواهد شد:")
+        st.markdown("### 🌟 فرم ارزیابی و میزان رضایت از توصیه‌گر هوشمند")
+        st.caption("پاسخ‌های شما جهت ارزیابی در رساله پژوهشی در گوگل‌شیت ثبت می‌گردد:")
 
         with st.form("feedback_form"):
             fb_satisfaction = st.select_slider(
-                "۱. میزان رضایت شما از توصیه‌های ارائه‌شده توسط سامانه هوشمند:",
-                options=["بسیار کم / ناراضی", "کم", "متوسط", "زیاد", "بسیار زیاد و کاملاً کاربردی"],
+                "۱. میزان رضایت شما از کارایی و توصیه‌های سامانه هوشمند:",
+                options=["خیلی کم / ناراضی", "کم", "متوسط", "زیاد", "بسیار زیاد و کاملاً کاربردی"],
                 value="بسیار زیاد و کاملاً کاربردی"
             )
             
             fb_reuse = st.radio(
-                "۲. آیا مایل هستید در آینده نیز از این سامانه استفاده کنید؟",
+                "۲. تمایل به استفاده مجدد یا معرفی به دیگران:",
                 ["بله، حتماً", "احتمالاً بله", "خیر"],
                 horizontal=True
             )
             
             fb_comment = st.text_area(
-                "۳. پیشنهادات و انتقادات شما برای بهبود عملکرد سامانه:",
-                placeholder="پیشنهاد خود را اینجا بنویسید..."
+                "۳. پیشنهادات یا انتقادات تکمیلی شما:",
+                placeholder="نظر ارزشمند خود را در اینجا بنویسید..."
             )
             
-            submit_feedback = st.form_submit_button("💌 ثبت میزان رضایت و ارسال بازخورد", use_container_width=True, type="primary")
+            submit_feedback = st.form_submit_button("💌 ثبت میزان رضایت و نظر", use_container_width=True, type="primary")
 
         if submit_feedback:
-            # ارسال ردیف رضایت‌سنجی در ستون‌های اختصاصی
             feedback_payload = {
                 "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "gender": st.session_state.user_gender,
@@ -269,48 +289,48 @@ if menu == "📝 تکمیل پرسشنامه و دریافت توصیه":
             fb_ok, fb_msg = send_to_google_sheet(feedback_payload)
             if fb_ok:
                 st.balloons()
-                st.success("🎉 با تشکر! میزان رضایت و نظر ارزشمند شما در ستون مربوطه در گوگل‌شیت ثبت گردید.")
+                st.success("🎉 با تشکر! میزان رضایت شما با موفقیت در ستون مربوطه در گوگل‌شیت ذخیره شد.")
             else:
-                st.error(f"خطا در ثبت بازخورد: {fb_msg}")
+                st.error(f"خطا در ثبت: {fb_msg}")
 
-# ================= ۲. درباره سامانه =================
+# ================= بخش ۲: درباره سامانه =================
 elif menu == "ℹ️ درباره طرح پژوهشی":
-    st.markdown("### 📘 درباره سامانه توصیه‌گر هوشمند DiaCare AI")
+    st.markdown("### 📘 درباره سامانه خودمراقبتی هوشمند DiaCare AI")
     st.write("""
-    این پژوهش با هدف طراحی و ارزیابی سامانه تصمیم‌یار بالینی هوشمند (CDSS) جهت ارتقای رفتارهای خودمراقبتی و مدیریت بیماری در افراد مبتلا به دیابت انجام شده است.
+    این سامانه با بهره‌گیری از هوش مصنوعی و پروتکل‌های خودمراقبتی استاندارد طراحی شده است تا تصمیم‌یاری مناسب برای ارتقای سلامت بیماران دیابتی فراهم آورد.
     """)
 
-# ================= ۳. پنل مدیریت پژوهشگر =================
-elif menu == "🔐 پنل مدیریت و تست اتصال":
-    st.markdown("<h2 class='main-title'>🔐 پنل مدیریت و تنظیمات اتصال</h2>", unsafe_allow_html=True)
+# ================= بخش ۳: پنل مدیریت =================
+elif menu == "🔐 پنل مدیریت و بررسی اتصال":
+    st.markdown("<h2 class='main-title'>🔐 پنل مدیریت و تست ارتباط</h2>", unsafe_allow_html=True)
     admin_pass = st.text_input("رمز عبور مدیر:", type="password")
     
     if admin_pass == "admin123":
-        st.success("🔓 ورود موفقیت‌آمیز بود.")
-        current_url = st.text_input("Google Webhook URL:", value=st.session_state.google_sheet_url)
+        st.success("🔓 احراز هویت موفقیت‌آمیز بود.")
+        current_url = st.text_input("آدرس وب‌هوک گوگل شیت:", value=st.session_state.google_sheet_url)
         
-        col_btn1, col_btn2 = st.columns(2)
-        with col_btn1:
-            if st.button("💾 ذخیره آدرس جدید", use_container_width=True):
+        c_btn1, c_btn2 = st.columns(2)
+        with c_btn1:
+            if st.button("💾 ذخیره آدرس", use_container_width=True):
                 st.session_state.google_sheet_url = current_url.strip()
-                st.success("✅ آدرس با موفقیت ذخیره شد.")
+                st.success("✅ آدرس ذخیره شد.")
                 
-        with col_btn2:
-            if st.button("🧪 ارسال داده تستی به همراه ستون رضایت", use_container_width=True, type="primary"):
-                test_data = {
+        with c_btn2:
+            if st.button("🧪 ارسال داده تستی به گوگل‌شیت", use_container_width=True, type="primary"):
+                test_payload = {
                     "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     "gender": "تست سیستم",
                     "received_advice": "بله",
                     "click_count": 999,
-                    "diabetes_info": "تست ستون‌های جدید شیت",
-                    "satisfaction": "بسیار زیاد و کاملاً کاربردی (تستی)",
+                    "diabetes_info": "تست ستون‌های شیت",
+                    "satisfaction": "بسیار زیاد (تست)",
                     "reuse": "بله، حتماً",
-                    "comment": "اتصال تستی با ستون‌های جدید برقرار است."
+                    "comment": "اتصال تستی بدون خطا برقرار است."
                 }
-                ok, response_msg = send_to_google_sheet(test_data)
+                ok, res = send_to_google_sheet(test_payload)
                 if ok:
-                    st.success(f"🎉 ارتباط با ۸ ستون جدید گوگل‌شیت برقرار است! ({response_msg})")
+                    st.success(f"🎉 ارتباط با موفقیت برقرار است! ({res})")
                 else:
-                    st.error(f"❌ خطا: {response_msg}")
+                    st.error(f"❌ خطا: {res}")
     elif admin_pass != "":
-        st.error("❌ رمز عبور نادرست است.")
+        st.error("❌ رمز عبور اشتباه است.")

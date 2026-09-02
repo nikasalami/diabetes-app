@@ -53,7 +53,6 @@ st.markdown("""
     .main-title {text-align: right; color: #0D47A1; font-weight: bold; margin-bottom: 5px;}
     .sub-title {text-align: right; color: #546E7A; margin-bottom: 25px;}
     .section-header {background-color: #E3F2FD; padding: 8px 15px; border-radius: 8px; color: #0D47A1; font-weight: bold; margin-top: 15px; margin-bottom: 15px; text-align: right;}
-    .feedback-box {background-color: #F1F8E9; border: 1px solid #AED581; padding: 20px; border-radius: 12px; margin-top: 30px;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -86,6 +85,19 @@ if menu == "📝 تکمیل پرسشنامه و دریافت توصیه":
         with c2:
             q2_phone = st.text_input("۲. شماره تلفن همراه (اختیاری):", value="")
             q4_age = st.number_input("۴. سن (سال):", min_value=10, max_value=100, value=48)
+            q6_weight = st.number_input("۶. وزن فعلی (کیلوگرم):", min_value=30.0, max_ را تکمیل فرمایید تا سیستم توصیه‌های بالینی و خودمراقبتی اختصاصی شما را ارائه دهد.</p>", unsafe_allow_html=True)
+
+    with st.form("diabetes_survey_form"):
+        # بخش ۱: مشخصات فردی
+        st.markdown("<div class='section-header'>👤 بخش ۱: مشخصات فردی و دموگرافیک</div>", unsafe_allow_html=True)
+        c1, c2 = st.columns(2)
+        with c1:
+            q1_name = st.text_input("۱. نام و نام خانوادگی یا نام مستعار (جهت خطاب):", value="کاربر گرامی")
+            q3_gender = st.radio("۳. جنسیت:", ["زن", "مرد"], horizontal=True)
+            q5_height = st.number_input("۵. قد (سانتی‌متر):", min_value=100, max_value=230, value=168)
+        with c2:
+            q2_phone = st.text_input("۲. شماره تلفن همراه (اختیاری):", value="")
+            q4_age = st.number_input("۴. سن (سال):", min_value=10, max_value=100, value=48)
             q6_weight = st.number_input("۶. وزن فعلی (کیلوگرم):", min_value=30.0, max_value=200.0, value=74.0, step=0.5)
 
         bmi = round(q6_weight / ((q5_height / 100) ** 2), 1)
@@ -94,39 +106,7 @@ if menu == "📝 تکمیل پرسشنامه و دریافت توصیه":
         st.markdown("<div class='section-header'>💊 بخش ۲: سابقه و روش درمانی دیابت</div>", unsafe_allow_html=True)
         c3, c4 = st.columns(2)
         with c3:
-            q7_type = st.selectbox("۷. نوع دیابت شما چیست؟", [
-                "دیابت نوع ۲",
-                "دیابت نوع ۱",
-                "دیابت بارداری",
-                "مطمئن نیستم / نمی‌دانم"
-            ])
-            q9_treatment = st.selectbox("۹. روش درمانی فعلی شما چیست؟", [
-                "قرص‌های خوراکی (متفورمین، گلی‌بن‌کلامید، امپاگلیفلوزین و...)",
-                "تزریق انسولین",
-                "هم قرص خوراکی و هم انسولین",
-                "فقط رژیم غذایی و ورزش (بدون دارو)"
-            ])
-        with c4:
-            q8_duration = st.selectbox("۸. چند سال از تشخیص دیابت شما می‌گذرد؟", [
-                "کمتر از ۱ سال",
-                "۱ تا ۵ سال",
-                "۵ تا ۱۰ سال",
-                "بیش از ۱۰ سال"
-            ])
-            q10_comorbidities = st.multiselect("۱۰. بیماری‌های همراه:", [
-                "فشار خون بالا",
-                "چربی خون بالا",
-                "سابقه بیماری قلبی - عروقی",
-                "مشکلات کلیوی",
-                "زخم پای دیابتی یا گزگز و بی‌حسی پا",
-                "هیچ‌کدام"
-            ], default=["هیچ‌کدام"])
-
-        # بخش ۳: آزمایش‌ها
-        st.markdown("<div class='section-header'>🧪 بخش ۳: وضعیت قند خون و آزمایش‌ها</div>", unsafe_allow_html=True)
-        c5, c6 = st.columns(2)
-        with c5:
-            q11_fbs = st.selectbox("۱۱. میانگین قند خون ناشتای شما در دو هفته اخیر:", [
+            q7_type = st. میانگین قند خون ناشتای شما در دو هفته اخیر:", [
                 "۷۰ تا ۱۳۰ (محدوده مطلوب)",
                 "۱۳۰ تا ۱۸۰ (کمی بالاتر از حد هدف)",
                 "بیشتر از ۱۸۰ (خیلی بالا)",
@@ -188,25 +168,26 @@ if menu == "📝 تکمیل پرسشنامه و دریافت توصیه":
         st.session_state.form_submitted = True
         st.session_state.user_gender = q3_gender
         
-        # ذخیره خلاصه پرونده
         summary = f"نوع: {q7_type} | درمان: {q9_treatment} | ناشتا: {q11_fbs} | HbA1c: {q13_hba1c} | BMI: {bmi}"
         st.session_state.user_info_summary = summary
         
-        # ارسال به گوگل شیت
+        # ثبت اولیه داده‌های بالینی بیمار
         payload = {
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "gender": q3_gender,
             "received_advice": "بله (توصیه دریافت شد)",
             "click_count": st.session_state.click_count,
-            "diabetes_info": summary
+            "diabetes_info": summary,
+            "satisfaction": "در انتظار ثبت نظر",
+            "reuse": "-",
+            "comment": "-"
         }
         send_to_google_sheet(payload)
 
-    # نمایش توصیه‌ها پس از ثبت
+    # نمایش توصیه‌ها پس از ثبت فرم
     if st.session_state.form_submitted:
-        st.success(f"✅ پرونده شما با موفقیت تحلیل شد و توصیه‌های خودمراقبتی آماده است.")
+        st.success("✅ پرونده شما با موفقیت تحلیل شد و توصیه‌های خودمراقبتی آماده است.")
         
-        # شاخص BMI
         c_bmi1, c_bmi2 = st.columns(2)
         with c_bmi1:
             st.metric("شاخص توده بدنی (BMI)", f"{bmi} kg/m²")
@@ -248,44 +229,47 @@ if menu == "📝 تکمیل پرسشنامه و دریافت توصیه":
                 st.error("🚨 مراقبت ویژه از پا: روزانه پاها را از نظر هرگونه خراش یا تغییر رنگ معاینه فرمایید.")
             st.info("• انجام منظم آزمایش HbA1c هر ۳ تا ۶ ماه یک‌بار الزامی است.")
 
-        # ================= فرم جدید: سنجش رضایت و بازخورد =================
+        # ================= بخش نظرسنجی و رضایت‌سنجی =================
         st.markdown("---")
-        st.markdown("### 🌟 نظرسنجی و ارزیابی سامانه هوشمند")
-        st.write("پاسخ‌های شما به بهبود کیفیت سیستم و پژوهش کمک شایانی خواهد کرد:")
+        st.markdown("### 🌟 نظرسنجی و ثبت میزان رضایت از توصیه‌گر")
+        st.write("پاسخ‌های شما مستقیماً در پایگاه داده پژوهش ذخیره خواهد شد:")
 
         with st.form("feedback_form"):
             fb_satisfaction = st.select_slider(
-                "۱. چقدر از توصیه‌های ارائه‌شده توسط سامانه رضایت دارید؟",
-                options=["خیلی کم / ناراضی", "کم", "متوسط", "زیاد", "بسیار عالی و کاربردی"],
-                value="بسیار عالی و کاربردی"
+                "۱. میزان رضایت شما از توصیه‌های ارائه‌شده توسط سامانه هوشمند:",
+                options=["بسیار کم / ناراضی", "کم", "متوسط", "زیاد", "بسیار زیاد و کاملاً کاربردی"],
+                value="بسیار زیاد و کاملاً کاربردی"
             )
             
             fb_reuse = st.radio(
-                "۲. آیا مایل هستید در آینده نیز از این سامانه جهت پایش خودمراقبتی استفاده کنید؟",
+                "۲. آیا مایل هستید در آینده نیز از این سامانه استفاده کنید؟",
                 ["بله، حتماً", "احتمالاً بله", "خیر"],
                 horizontal=True
             )
             
             fb_comment = st.text_area(
-                "۳. پیشنهادات، انتقادات یا نکاتی که برای بهبود سامانه به نظرتان می‌رسد را بنویسید:",
-                placeholder="مثلاً: اضافه شدن یادآور پیامکی، توضیحات بیشتر درباره رژیم غذایی و..."
+                "۳. پیشنهادات و انتقادات شما برای بهبود عملکرد سامانه:",
+                placeholder="پیشنهاد خود را اینجا بنویسید..."
             )
             
-            submit_feedback = st.form_submit_button("💌 ثبت نظر و ارسال بازخورد", use_container_width=True, type="primary")
+            submit_feedback = st.form_submit_button("💌 ثبت میزان رضایت و ارسال بازخورد", use_container_width=True, type="primary")
 
         if submit_feedback:
-            feedback_summary = f"رضایت: {fb_satisfaction} | استفاده مجدد: {fb_reuse} | پیشنهاد: {fb_comment.strip() if fb_comment.strip() else 'بدون متن'}"
+            # ارسال ردیف رضایت‌سنجی در ستون‌های اختصاصی
             feedback_payload = {
                 "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "gender": st.session_state.user_gender,
-                "received_advice": "ثبت بازخورد و رضایت‌سنجی",
+                "received_advice": "ثبت بازخورد",
                 "click_count": st.session_state.click_count,
-                "diabetes_info": f"[بازخورد] {feedback_summary}"
+                "diabetes_info": st.session_state.user_info_summary,
+                "satisfaction": fb_satisfaction,
+                "reuse": fb_reuse,
+                "comment": fb_comment.strip() if fb_comment.strip() else "بدون نظر متنی"
             }
             fb_ok, fb_msg = send_to_google_sheet(feedback_payload)
             if fb_ok:
                 st.balloons()
-                st.success("🎉 با تشکر فراوان! بازخورد ارزشمند شما با موفقیت در پایگاه داده پژوهش ثبت گردید.")
+                st.success("🎉 با تشکر! میزان رضایت و نظر ارزشمند شما در ستون مربوطه در گوگل‌شیت ثبت گردید.")
             else:
                 st.error(f"خطا در ثبت بازخورد: {fb_msg}")
 
@@ -312,17 +296,20 @@ elif menu == "🔐 پنل مدیریت و تست اتصال":
                 st.success("✅ آدرس با موفقیت ذخیره شد.")
                 
         with col_btn2:
-            if st.button("🧪 ارسال داده تستی و بررسی اتصال", use_container_width=True, type="primary"):
+            if st.button("🧪 ارسال داده تستی به همراه ستون رضایت", use_container_width=True, type="primary"):
                 test_data = {
                     "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     "gender": "تست سیستم",
                     "received_advice": "بله",
                     "click_count": 999,
-                    "diabetes_info": "تست ثبت داده و بازخورد"
+                    "diabetes_info": "تست ستون‌های جدید شیت",
+                    "satisfaction": "بسیار زیاد و کاملاً کاربردی (تستی)",
+                    "reuse": "بله، حتماً",
+                    "comment": "اتصال تستی با ستون‌های جدید برقرار است."
                 }
                 ok, response_msg = send_to_google_sheet(test_data)
                 if ok:
-                    st.success(f"🎉 ارتباط با گوگل شیت برقرار است! ({response_msg})")
+                    st.success(f"🎉 ارتباط با ۸ ستون جدید گوگل‌شیت برقرار است! ({response_msg})")
                 else:
                     st.error(f"❌ خطا: {response_msg}")
     elif admin_pass != "":

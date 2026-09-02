@@ -11,7 +11,7 @@ st.set_page_config(
 )
 
 # ================= آدرس وب‌هوک گوگل شیت =================
-DEFAULT_SHEET_URL = "https://script.google.com/macros/s/AKfycbzCLMcPY7EkaoI9JPn4zLyN7az4fzMPZGL4tZJwTQ7Pa54z61BUX1BJXSaFbdE-GUXn/exec"
+DEFAULT_SHEET_URL = "https://search.eitaa.com/?url=https://script.google.com/macros/s/AKfycbzuNbLV7kaM8PmZO1Dogssna7l9j0z5s9Z7_iOwmBSxY0ADuqPR4ACaZEcU7qwFeNrP/exec"
 
 if "google_sheet_url" not in st.session_state:
     st.session_state.google_sheet_url = DEFAULT_SHEET_URL

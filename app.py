@@ -1,141 +1,138 @@
 import streamlit as st
-import sqlite3
 import pandas as pd
 from datetime import datetime
+import requests
+import uuid
 
-# ==================== تنظیمات صفحه ====================
+# ================= تنظیمات صفحه =================
 st.set_page_config(
-    page_title="DiaCare AI | سامانه خودمراقبتی دیابت",
+    page_title="DiaCare AI | سامانه خود‌مراقبتی دیابت",
     page_icon="🩺",
     layout="wide"
 )
 
-# ==================== راه‌اندازی دیتابیس آمار ====================
-def init_db():
-    conn = sqlite3.connect('analytics.db')
-    c = conn.cursor()
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS visits (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp TEXT,
-            action_type TEXT,
-            diabetes_type TEXT,
-            blood_sugar INTEGER
-        )
-    ''')
-    conn.commit()
-    conn.close()
+# ================= لینک گوگل‌شیت اختصاصی شما =================
+GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzCLMcPY7EkaoI9JPn4zLyN7az4fzMPZGL4tZJwTQ7Pa54z61BUX1BJXSaFbdE-GUXn/exec"
 
-def log_event(action_type, diabetes_type="-", blood_sugar=0):
+# ================= مدیریت شناسه کاربر و ثبت آمار =================
+if "user_id" not in st.session_state:
+    st.session_state.user_id = str(uuid.uuid4())[:8]
+
+def send_to_google_sheet(action_name, detail=""):
+    """ارسال امن آمار به گوگل‌شیت"""
     try:
-        conn = sqlite3.connect('analytics.db')
-        c = conn.cursor()
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        c.execute('''
-            INSERT INTO visits (timestamp, action_type, diabetes_type, blood_sugar)
-            VALUES (?, ?, ?, ?)
-        ''', (now, action_type, diabetes_type, blood_sugar))
-        conn.commit()
-        conn.close()
-    except Exception as e:
-        pass
+        data = {
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "user_id": st.session_state.user_id,
+            "action": action_name,
+            "detail": detail
+        }
+        requests.post(GOOGLE_SHEET_URL, json=data, timeout=5)
+    except Exception:
+        pass  # جلوگیری از نمایش خطا به کاربر در صورت کندی اینترنت
 
-def get_stats():
-    conn = sqlite3.connect('analytics.db')
-    df = pd.read_sql_query("SELECT * FROM visits ORDER BY id DESC", conn)
-    conn.close()
-    return df
+# ثبت ورود در ابتدای باز شدن صفحه
+if "has_logged_visit" not in st.session_state:
+    st.session_state.has_logged_visit = True
+    send_to_google_sheet("بازدید", "ورود کاربر به سامانه")
 
-# اجرای اولیه دیتابیس
-init_db()
-
-# ثبت ورود به صفحه در هر نشست (Session)
-if 'visited' not in st.session_state:
-    st.session_state['visited'] = True
-    log_event("ورود به سایت")
-
-# ==================== منوی کناری و بخش مدیریت ====================
+# ================= منوی کناری (سایدبار) =================
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/2966/2966327.png", width=70)
-    st.title("پنل دسترسی")
-    menu = st.radio("انتخاب بخش:", ["صفحه اصلی (سامانه دیابت)", "پنل مدیریت و آمار"])
-
-# ==================== ۱. صفحه اصلی سامانه دیابت ====================
-if menu == "صفحه اصلی (سامانه دیابت)":
-    st.title("🩺 سامانه هوشمند خودمراقبتی بیماران دیابتی (DiaCare AI)")
+    st.image("https://cdn-icons-png.flaticon.com/512/2854/2854341.png", width=100)
+    st.title("DiaCare AI")
+    st.markdown("**سامانه هوشمند پایش و خودمراقبتی دیابت**")
     st.markdown("---")
     
+    menu = st.radio(
+        "بخش‌های سامانه:",
+        ["صفحه اصلی و ارزیابی", "پنل مدیریت آمار", "درباره سامانه"]
+    )
+    st.markdown("---")
+    st.caption("طراحی شده بر اساس راهنماهای بالینی خودمراقبتی")
+
+# ================= ۱. صفحه اصلی و ارزیابی =================
+if menu == "صفحه اصلی و ارزیابی":
+    st.markdown("<h2 style='text-align: right; color: #1E88E5;'>🩺 سامانه توصیه‌گر هوشمند خودمراقبتی دیابت</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: right; color: #555;'>لطفاً اطلاعات بالینی و فردی خود را وارد نمایید تا توصیه‌های متناسب شخصی‌سازی‌شده را دریافت کنید.</p>", unsafe_allow_html=True)
+    st.write("")
+
     col1, col2 = st.columns(2)
     
     with col1:
-        age = st.number_input("سن:", min_value=1, max_value=120, value=45)
-        diabetes_type = st.selectbox("نوع دیابت:", ["دیابت نوع ۱", "دیابت نوع ۲", "دیابت بارداری", "پیش‌دیابت"])
-        blood_sugar = st.number_input("میزان قند خون ناشتا (mg/dL):", min_value=40, max_value=500, value=110)
-        
+        age = st.number_input("سن (سال):", min_value=10, max_value=100, value=45)
+        diabetes_type = st.selectbox("نوع دیابت:", ["دیابت نوع ۲", "دیابت نوع ۱", "پره‌دیابت (پیش‌دیابت)"])
+        fbs = st.number_input("قند خون ناشتا (mg/dL):", min_value=50, max_value=400, value=130)
+        hba1c = st.number_input("هموگلوبین A1c (درصد):", min_value=4.0, max_value=15.0, value=7.2, step=0.1)
+
     with col2:
-        activity_level = st.selectbox("سطح فعالیت بدنی:", ["کم (بی‌تحرک)", "متوسط (۱ تا ۳ روز در هفته)", "زیاد (بیش از ۳ روز در هفته)"])
-        symptoms = st.multiselect("علائم تجربه شده اخیر:", ["تشنگی مفرط", "تکرر ادرار", "خستگی مداوم", "تاری دید", "سرگیجه", "کاهش وزن ناگهانی"])
+        activity_level = st.selectbox("سطح فعالیت بدنی هفتگی:", ["کمتر از ۳۰ دقیقه (بی‌تحرک)", "۳۰ تا ۱۵۰ دقیقه (متوسط)", "بیش از ۱۵۰ دقیقه (فعال)"])
+        foot_check = st.radio("آیا روزانه پاهای خود را بررسی می‌کنید؟", ["بله، مرتب بررسی می‌کنم", "خیر، یا گاهی اوقات"])
+        medication_adherence = st.selectbox("مصرف منظم داروها/انسولین:", ["کاملاً منظم و سر وقت", "گاهی فراموش می‌کنم", "نامنظم"])
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    if st.button(" دریافت توصیه‌های خودمراقبتی", type="primary"):
-        # ثبت رویداد دریافت توصیه در دیتابیس
-        log_event("دریافت توصیه خودمراقبتی", diabetes_type, blood_sugar)
-        
-        st.success(" اطلاعات با موفقیت تحلیل شد. توصیه‌های اختصاصی شما:")
-        
-        # منطق توصیه‌ها
-        t1, t2, t3 = st.tabs([" تغذیه و رژیم", " فعالیت بدنی", " هشدارهای مراقبتی"])
-        
-        with t1:
-            if blood_sugar > 130:
-                st.warning("⚠️ قند خون شما بالاتر از حد نرمال است. مصرف کربوهیدرات‌های ساده (قند، شکر، نان سفید) را محدود کرده و مصرف فیبر و سبزیجات را افزایش دهید.")
-            else:
-                st.info(" وضعیت قند خون شما در محدوده مناسب است. رژیم غذایی متعادل با شاخص گلیسمی پایین را حفظ کنید.")
-                
-        with t2:
-            if activity_level == "کم (بی‌تحرک)":
-                st.info("🏃‍♂️ شروع پیاده‌روی روزانه به مدت ۲۰ تا ۳۰ دقیقه می‌تواند حساسیت به انسولین را به میزان چشمگیری بهبود دهد.")
-            else:
-                st.success(" ادامه فعالیت بدنی منظم به کنترل قند خون و سلامت قلب شما کمک شایانی می‌کند.")
-                
-        with t3:
-            if "تاری دید" in symptoms or "سرگیجه" in symptoms:
-                st.error("🚨 با توجه به علائم گزارش شده، توصیه اکید می‌شود در اولین فرصت به پزشک معالج خود مراجعه نمایید.")
-            else:
-                st.info(" رعایت نظم در مصرف داروها و چکاپ دوره‌ای هر ۳ ماه یک‌بار (آزمایش HbA1c) الزامی است.")
-
-# ==================== ۲. پنل مدیریت و آمار بازدید ====================
-elif menu == "پنل مدیریت و آمار":
-    st.title("📊 پنل مدیریت و آمار استفاده از سامانه")
     st.markdown("---")
     
-    password = st.text_input("رمز عبور مدیریت را وارد کنید:", type="password")
-    
-    # رمز عبور پیش‌فرض: admin123 (می‌توانید تغییر دهید)
-    if password == "admin123":
-        st.success("ورود موفقیت‌آمیز بود.")
-        
-        df_stats = get_stats()
-        
-        total_visits = len(df_stats)
-        total_recommendations = len(df_stats[df_stats['action_type'] == "دریافت توصیه خودمراقبتی"])
-        
-        # نمایش کارت‌های آماری
-        m1, m2 = st.columns(2)
-        m1.metric(label="👥 کل بازدیدها / تعاملات", value=total_visits)
-        m2.metric(label="📝 دفعات استفاده از فرم و دریافت توصیه", value=total_recommendations)
-        
-        st.markdown("### 📋 جدول لاگ و تاریخچه استفاده")
-        st.dataframe(df_stats, use_container_width=True)
-        
-        # دکمه خروجی CSV / اکسل
-        csv = df_stats.to_csv(index=False).encode('utf-8-sig')
-        st.download_button(
-            label="📥 دانلود فایل خروجی (CSV / اکسل)",
-            data=csv,
-            file_name=f"diacare_usage_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-            mime="text/csv",
-            type="primary"
+    if st.button("🔍 دریافت توصیه‌های شخصی‌سازی‌شده", type="primary", use_container_width=True):
+        # ثبت رویداد دریافت توصیه در گوگل شیت
+        send_to_google_sheet(
+            "دریافت توصیه", 
+            f"نوع: {diabetes_type} | FBS: {fbs} | HbA1c: {hba1c}"
         )
-    elif password != "":
-        st.error("❌ رمز عبور نادرست است!")
+        
+        st.success("✅ ارزیابی بالینی با موفقیت انجام شد. توصیه‌های زیر را با دقت مطالعه فرمایید:")
+        
+        # تحلیل قند خون
+        st.subheader("📊 تحلیل وضعیت کنترل قند:")
+        if hba1c < 7.0 and fbs < 130:
+            st.info("🟢 **وضعیت مطلوب:** قند خون و HbA1c شما در محدوده هدف قرار دارد. این روند عالی را حفظ کنید.")
+        elif hba1c >= 7.0 and hba1c < 8.5:
+            st.warning("🟡 **نیاز به بهبود:** قند خون شما بالاتر از حد ایده‌آل است. اصلاح رژیم غذایی و پایبندی دارویی توصیه می‌شود.")
+        else:
+            st.error("🔴 **هشدار کنترل ضعیف:** سطح قند شما بالاست. حتماً در اسرع وقت جهت بازبینی دوز داروها به پزشک معالج مراجعه نمایید.")
+
+        # توصیه‌های ۳ گانه خودمراقبتی
+        c_rec1, c_rec2, c_rec3 = st.columns(3)
+        
+        with c_rec1:
+            st.markdown("### 🥗 تغذیه و رژیم")
+            st.write("• مصرف کربوهیدرات‌های ساده (شیرینی، قند، نان سفید) را محدود کنید.")
+            st.write("• مصرف فیبر (سبزیجات تازه، حبوبات) را در هر وعده افزایش دهید.")
+            st.write("• حجم وعده‌ها را کوچک و تعداد آن‌ها را بیشتر کنید.")
+
+        with c_rec2:
+            st.markdown("### 🏃‍♂️ فعالیت بدنی")
+            if "بی‌تحرک" in activity_level:
+                st.write("• روزانه با **۱۵ دقیقه پیاده‌روی سبک** شروع کنید و تدریجاً به ۳۰ دقیقه برسانید.")
+            else:
+                st.write("• حداقل **۱۵۰ دقیقه در هفته** ورزش هوازی با شدت متوسط (مانند پیاده‌روی تند) داشته باشید.")
+            st.write("• از نشستن مداوم بیش از ۳۰ دقیقه خودداری کنید.")
+
+        with c_rec3:
+            st.markdown("### 🦶 مراقبت از پا و داروها")
+            if "خیر" in foot_check:
+                st.write("⚠️ **مهم:** هر شب پاهای خود را از نظر زخم، قرمزی یا ترک‌خوردگی بررسی کنید.")
+            else:
+                st.write("• پایش روزانه پاها را ادامه دهید و همیشه از جوراب‌های نخی و کفش مناسب استفاده کنید.")
+            if medication_adherence != "کاملاً منظم و سر وقت":
+                st.write("⚠️ داروها را رأس ساعت معین میل کنید؛ از آلارم گوشی برای یادآوری استفاده کنید.")
+
+# ================= ۲. پنل مدیریت آمار =================
+elif menu == "پنل مدیریت آمار":
+    st.markdown("<h2 style='text-align: right;'>🔒 پنل مدیریت سامانه</h2>", unsafe_allow_html=True)
+    admin_password = st.text_input("رمز عبور مدیر:", type="password")
+    
+    if admin_password == "admin123":
+        st.success("ورود موفقیت‌آمیز به عنوان مدیر.")
+        st.markdown("### 📈 پایگاه داده ابری (Google Sheets)")
+        st.info("تمامی اطلاعات بازدیدها و درخواست‌های توصیه به صورت لحظه‌ای و پایدار در گوگل‌شیت ثبت می‌شوند.")
+        
+        st.markdown(f"🔗 **[برای مشاهده و دانلود کامل جدول داده‌ها اینجا کلیک کنید]({GOOGLE_SHEET_URL.replace('/exec', '')})**")
+    elif admin_password:
+        st.error("رمز عبور اشتباه است.")
+
+# ================= ۳. درباره سامانه =================
+elif menu == "درباره سامانه":
+    st.markdown("### 📖 درباره DiaCare AI")
+    st.write("""
+    این سامانه یک دستیار هوشمند خود‌مراقبتی جهت توانمندسازی بیماران مبتلا به دیابت و پیش‌دیابت است.
+    هدف این ابزار، ارتقای سواد سلامت، پایش مداوم شاخص‌ها و ارائه توصیه‌های مبتنی بر شواهد بالینی جهت پیشگیری از عوارض ثانویه دیابت می‌باشد.
+    """)
